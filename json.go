@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
@@ -25,11 +25,16 @@ func prepareRequest() (Request request, pairs []string) {
 
 	configFile, oerr := os.Open("config.json")
 	if oerr != nil {
-		fmt.Println("FILE ERROR")
+		log.Fatal(oerr)
 	} else {
 		byteValue, _ := ioutil.ReadAll(configFile)
 		jsonBody := config{}
-		json.Unmarshal(byteValue, &jsonBody)
+		jerr := json.Unmarshal(byteValue, &jsonBody)
+
+		if jerr != nil {
+			log.Fatal(jerr)
+			os.Exit(1)
+		}
 
 		var params []string
 
@@ -38,7 +43,9 @@ func prepareRequest() (Request request, pairs []string) {
 			pairs = append(pairs, jsonBody.Pairs[i])
 		}
 
-		Request.ID, Request.Method, Request.Params = 1, "SUBSCRIBE", params
+		Request.ID = 1
+		Request.Method = "SUBSCRIBE"
+		Request.Params = params
 	}
 
 	return

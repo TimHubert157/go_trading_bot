@@ -20,7 +20,7 @@ type bot struct {
 func (b *bot) Strategy() {
 	for {
 		time.Sleep(1 * time.Second)
-		fmt.Println(b.Symbol, (*b.Dataset)[len(*b.Dataset)-1])
+		fmt.Println("Symbol:", b.Symbol, "Price: ", (*b.Dataset)[len(*b.Dataset)-1], "SMA(5):", sma(*b.Dataset, 5))
 	}
 }
 
@@ -31,9 +31,10 @@ func main() {
 
 	go WebsocketHandler(WaitForRequest)
 
-	if <-WaitForRequest {
-		bots := make([]bot, 0)
+	bots := make([]bot, 0)
 
+	if <-WaitForRequest {
+		close(WaitForRequest)
 		for i, symbol := range symbols {
 			newBot := bot{symbol, false, 0, &df[i].set}
 			wg.Add(1)

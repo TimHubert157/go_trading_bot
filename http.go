@@ -28,13 +28,13 @@ func getHistoricalKlines(Symbols []string) {
 		APIurl.RawQuery = URLparams.Encode()
 
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 
 		res, err := http.Get(APIurl.String())
 
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 
 		defer res.Body.Close()
@@ -46,7 +46,10 @@ func getHistoricalKlines(Symbols []string) {
 
 		var ArrayRecv [][]interface{}
 
-		json.Unmarshal(body, &ArrayRecv)
+		jerr := json.Unmarshal(body, &ArrayRecv)
+		if jerr != nil {
+			log.Fatal(jerr)
+		}
 
 		for dfIndex, s := range symbols {
 			if s == symbol {
