@@ -1,0 +1,5 @@
+{
+    "pairs": ["BTCUSDT", "BNBUSDT", "VOXELUSDT"],
+    "klineInterval": "1m", 
+    "datasetSize": 20
+}
