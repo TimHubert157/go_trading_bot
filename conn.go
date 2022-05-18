@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -15,7 +16,23 @@ type dataset struct {
 
 func WebsocketHandler(WaitForRequest chan bool) {
 	conn, _, err := websocket.DefaultDialer.Dial("wss://stream.binance.com/ws", nil)
-	requestBody, pairs := prepareRequest()
+	requestBody, pairs, datasetSize, klineInterval := prepareRequest()
+
+	fmt.Printf("\nStarting Crypto Bot with %v and Interval:%s\n", pairs, klineInterval)
+
+	supIntervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
+	isSupported := false
+
+	for _, elem := range supIntervals {
+		if elem == klineInterval {
+			isSupported = true
+		}
+	}
+
+	if !isSupported {
+		log.Fatal("Not supported interval. All intervals are supported: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M")
+	}
+
 	symbols = pairs
 
 	//prepare main dataset array
@@ -45,12 +62,13 @@ func WebsocketHandler(WaitForRequest chan bool) {
 		rerr := conn.ReadJSON(&jsonBody)
 		if rerr != nil {
 			log.Fatal(rerr)
+
 		}
 
 		if jsonBody["k"] != nil {
 			ClosingTime := time.UnixMilli(int64(jsonBody["k"].(map[string]interface{})["T"].(float64)))
-			if time.Now().Add(15*time.Second).Before(ClosingTime) && GotRequest == false {
-				getHistoricalKlines(pairs)
+			if time.Now().Add(15*time.Second).Before(ClosingTime) && !GotRequest {
+				getHistoricalKlines(pairs, datasetSize, klineInterval)
 				WaitForRequest <- true
 				GotRequest = true
 			}
@@ -59,11 +77,14 @@ func WebsocketHandler(WaitForRequest chan bool) {
 		if jsonBody["k"] != nil && GotRequest {
 			for i := 0; i < len(df); i++ {
 				if df[i].name == jsonBody["s"] {
+					if len(df[i].set) > datasetSize {
+						df[i].set = df[i].set[1:len(df[i].set)]
+					}
 					// checking for new kline and appending a new one
 
 					klines := jsonBody["k"].(map[string]interface{})
 
-					if klines["x"].(bool) == true {
+					if klines["x"].(bool) {
 						floatAppend, _ := strconv.ParseFloat(klines["c"].(string), 32)
 						df[i].set = append(df[i].set, floatAppend)
 						// check for empty array, or to replace current value

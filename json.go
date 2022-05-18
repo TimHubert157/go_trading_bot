@@ -21,7 +21,7 @@ type config struct {
 }
 
 // read config.json and prepare request for API
-func prepareRequest() (Request request, pairs []string) {
+func prepareRequest() (Request request, pairs []string, DatasetSize int, KlineInterval string) {
 
 	configFile, oerr := os.Open("config.json")
 	if oerr != nil {
@@ -42,6 +42,9 @@ func prepareRequest() (Request request, pairs []string) {
 			params = append(params, strings.ToLower(jsonBody.Pairs[i]+"@kline_"+jsonBody.KlineInterval))
 			pairs = append(pairs, jsonBody.Pairs[i])
 		}
+
+		DatasetSize = jsonBody.DatasetSize
+		KlineInterval = jsonBody.KlineInterval
 
 		Request.ID = 1
 		Request.Method = "SUBSCRIBE"
