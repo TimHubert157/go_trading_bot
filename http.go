@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 //Takes an array with symbols to get the Historical Klines (Only from Binance)
@@ -99,4 +101,47 @@ func getHistoricalKlines(Symbols []string, datasetSize int, klineInterval string
 
 	}
 
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func wsEndpoint(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for {
+		wsjson.OpenTrades = OpenTrades
+
+		jerr := ws.WriteJSON(wsjson)
+		if jerr != nil {
+			break
+		}
+
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			break
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+}
+
+func setupRoutes() {
+	http.HandleFunc("/ws", wsEndpoint)
+}
+
+func Webserver() {
+	setupRoutes()
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "index.html")
+	})
+	http.ListenAndServe(":8080", nil)
 }
