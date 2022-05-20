@@ -18,7 +18,7 @@ func WebsocketHandler(WaitForRequest chan bool) {
 	conn, _, err := websocket.DefaultDialer.Dial("wss://stream.binance.com/ws", nil)
 	requestBody, pairs, datasetSize, klineInterval := prepareRequest()
 
-	fmt.Printf("\nStarting Crypto Bot with %v and Interval:%s\n", pairs, klineInterval)
+	fmt.Printf("\nStarting Crypto Bot with %v and Interval:%s \n\n", pairs, klineInterval)
 
 	supIntervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	isSupported := false

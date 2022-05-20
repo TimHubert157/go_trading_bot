@@ -20,17 +20,14 @@ type config struct {
 	DatasetSize   int      `json:"datasetSize"`
 	TakeProfit    float64  `json:"takeProfit"`
 	StopLoss      float64  `json:"stopLoss"`
+	Webserver     bool     `json:"webserver"`
 }
 
-type wsJSON struct {
-	Symbols    []string `json:"symbol"`
-	Interval   string   `json:"interval"`
-	OpenTrades int      `json:"openTrades"`
-	Profit     float64  `json:"profit"`
-	Bot        []bot    `json:"bots"`
+type status struct {
+	Interval   string `json:"interval"`
+	OpenTrades int64  `json:"openTrades"`
+	Bot        []bot  `json:"bots"`
 }
-
-var wsjson wsJSON
 
 // read config.json and prepare request for API
 func prepareRequest() (Request request, pairs []string, DatasetSize int, KlineInterval string) {
@@ -55,16 +52,16 @@ func prepareRequest() (Request request, pairs []string, DatasetSize int, KlineIn
 			pairs = append(pairs, jsonBody.Pairs[i])
 		}
 
+		if jsonBody.Webserver {
+			go Webserver()
+		}
+
 		DatasetSize = jsonBody.DatasetSize
 		KlineInterval = jsonBody.KlineInterval
 		stopLoss = jsonBody.StopLoss
 		takeProfit = jsonBody.TakeProfit
 
-		wsjson.Interval = jsonBody.KlineInterval
-		wsjson.Symbols = jsonBody.Pairs
-		wsjson.OpenTrades = 0
-		wsjson.Profit = 0.0
-		wsjson.Bot = bots
+		Interval = jsonBody.KlineInterval
 
 		Request.ID = 1
 		Request.Method = "SUBSCRIBE"

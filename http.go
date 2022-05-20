@@ -116,20 +116,28 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	for {
-		wsjson.OpenTrades = OpenTrades
+	jsonMSG := status{Interval: Interval}
 
-		jerr := ws.WriteJSON(wsjson)
+	for {
+
+		if len(jsonMSG.Bot) == 0 {
+			for _, elem := range BotArray {
+				jsonMSG.Bot = append(jsonMSG.Bot, *elem)
+				jsonMSG.OpenTrades = OpenTrades
+			}
+		} else {
+			for index, elem := range BotArray {
+				jsonMSG.Bot[index] = *elem
+				jsonMSG.OpenTrades = OpenTrades
+			}
+		}
+
+		jerr := ws.WriteJSON(jsonMSG)
 		if jerr != nil {
 			break
 		}
 
-		_, _, err := ws.ReadMessage()
-		if err != nil {
-			break
-		}
-
-		time.Sleep(2 * time.Second)
+		time.Sleep(20 * time.Second)
 	}
 
 }

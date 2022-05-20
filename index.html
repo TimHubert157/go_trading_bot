@@ -1,36 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Binance Trading Bot</title>
-</head>
-<style>
-
-</style>
-<script>
-    const socket = new WebSocket('ws://localhost:8080/ws');
-
-// Connection opened
-socket.addEventListener('open', function (event) {
-    socket.send('Hello Server!');
-});
-
-// Listen for messages
-socket.addEventListener('message', function (event) {
-    console.log('Message from server ', event.data);
-});
-</script>
-<body class="bg-blue-500">
-    <div class="flex md:h-screen md:flex md:items-center md:justify-center gap-5">
-        <div class="flex flex-cols bg-white rounded-lg shadow-md border-1 border-blue-50 p-5 m-3 md:m-0 md:h-1/2 w-full md:w-1/2">
-            <div class="flex">
-                <p class="font-semibold font-sans text-2xl text-blue-500">Binance Trading Bot (by derHuberto)</p>
+   <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+      <title>Binance Trading Bot</title>
+   </head>
+   <style>
+   </style>
+   <body class="bg-gray-50">
+      <div class="bg-gray-50">
+         <div class="max-w-2xl mx-auto py-24 px-4 grid items-center grid-cols-1 gap-y-16 gap-x-8 sm:px-6 sm:py-32 lg:max-w-7xl lg:px-8 lg:grid-cols-2">
+            <div class="col-span-2">
+               <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Binance Trading Bot</h2>
+               <p class="mt-4 text-gray-500">Concept for a trading bot written in <span class="text-blue-500 font-semibold">Go.</span></p>
+               <dl class="mt-16 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 sm:gap-y-16 lg:gap-x-8">
+                  <div class="border-t border-gray-200 pt-4">
+                     <dt class="font-medium text-gray-900">Kline Interval</dt>
+                     <dd id="klineInterval" class="mt-2 text-sm text-gray-500">Kline Interval</dd>
+                  </div>
+                  <div class="border-t border-gray-200 pt-4">
+                     <dt class="font-medium text-gray-900">Open Trades</dt>
+                     <dd id="openTrades" class="mt-2 text-sm text-gray-500"></dd>
+                  </div>
+                  <div id="bots" class="border-t border-gray-200 pt-4 col-span-2">
+                     <dt class="font-medium text-gray-900">Bots</dt>
+                  </div>
             </div>
-            
-        </div>
-    </div>
-</body>
+            </dl>
+         </div>
+      </div>
+      </div>
+   </body>
+   <script>
+      const socket = new WebSocket('ws://localhost:8080/ws');
+      
+      // Connection opened
+      
+      var append = false
+      
+      socket.addEventListener('open', function (event) {
+      socket.send('Hello Server!');
+      });
+      
+      // Listen for messages
+      socket.addEventListener('message', function (event) {
+      const objJSON = JSON.parse(event.data);
+      document.getElementById("klineInterval").innerHTML = objJSON["interval"];
+      document.getElementById("openTrades").innerHTML = objJSON["openTrades"];
+      
+      for(var i = 0; i < objJSON["bots"].length; i++) {
+      var obj = objJSON["bots"][i];
+      
+      let botString = `<div id="bot${i}" class="bg-white rounded-lg border border-gray-200 mt-3 p-3 flex items-center justify-between"><p>${obj["symbol"]}</p><p>${obj["price"]}</p><p>${obj["bought"]}</p></div>`
+      
+      
+      
+      if (append == false) {
+          if (obj["bought"] == true) {
+            if (obj["profit"] >= 0) {
+              $( "#bots" ).append( `<div id="bot${i}" class="bg-white rounded-lg border border-gray-200 mt-3 p-3 flex items-center justify-between"><p class="font-semibold">${obj["symbol"]}</p><p class="font-semibold text-green-500">Profit: ${obj["profit"].toFixed(2)}%</p></div>` );
+            } else {
+              $( "#bots" ).append( `<div id="bot${i}" class="bg-white rounded-lg border border-gray-200 mt-3 p-3 flex items-center justify-between"><p class="font-semibold">${obj["symbol"]}</p><p class="font-semibold text-red-500">Profit: ${obj["profit"].toFixed(2)}%</p></div>` );
+            }
+          } else {
+              $( "#bots" ).append( `<div id="bot${i}" class="bg-white rounded-lg border border-gray-200 mt-3 p-3 flex items-center justify-between"><p class="font-semibold">${obj["symbol"]}</p></div>` );
+          }
+         
+      } else {
+          if (obj["bought"] == true) {
+              var toReplace = `<p class="font-semibold">${obj["symbol"]}</p><p class="font-semibold">${obj["profit"].toFixed(2)}%</p>` 
+              if (obj["profit"] >= 0) {
+              $( `#bot${i}`).html( `<p class="font-semibold">${obj["symbol"]}</p><p class="font-semibold text-green-500">Profit: ${obj["profit"].toFixed(2)}%</p>` );
+            } else {
+              $( `#bot${i}` ).html( `<p class="font-semibold">${obj["symbol"]}</p><p class="font-semibold text-red-500">Profit: ${obj["profit"].toFixed(2)}%</p>` );
+            }
+          } else {
+              var toReplace = `<p class="font-semibold">${obj["symbol"]}</p>` 
+              $(`#bot${i}`).html(toReplace);
+          }
+         
+      }    
+      
+      if (i +1  == objJSON["bots"].length) {
+          append = true
+      }
+      
+      }
+      }
+      );
+   </script>
 </html>

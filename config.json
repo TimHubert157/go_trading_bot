@@ -1,7 +1,8 @@
 {
-    "pairs": ["BTCUSDT", "BNBUSDT", "VOXELUSDT"],
+    "pairs": ["BTCUSDT", "BNBUSDT", "VOXELUSDT", "SANDUSDT"],
     "klineInterval": "1m", 
     "datasetSize": 100,
     "stopLoss": 0.2,
-    "takeProfit": 0.2
+    "takeProfit": 0.2,
+    "webserver": true
 }
