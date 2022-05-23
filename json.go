@@ -18,6 +18,15 @@ type config struct {
 	Pairs         []string `json:"pairs"`
 	KlineInterval string   `json:"klineInterval"`
 	DatasetSize   int      `json:"datasetSize"`
+	TakeProfit    float64  `json:"takeProfit"`
+	StopLoss      float64  `json:"stopLoss"`
+	Webserver     bool     `json:"webserver"`
+}
+
+type status struct {
+	Interval   string `json:"interval"`
+	OpenTrades int64  `json:"openTrades"`
+	Bot        []bot  `json:"bots"`
 }
 
 // read config.json and prepare request for API
@@ -43,8 +52,16 @@ func prepareRequest() (Request request, pairs []string, DatasetSize int, KlineIn
 			pairs = append(pairs, jsonBody.Pairs[i])
 		}
 
+		if jsonBody.Webserver {
+			go Webserver()
+		}
+
 		DatasetSize = jsonBody.DatasetSize
 		KlineInterval = jsonBody.KlineInterval
+		stopLoss = jsonBody.StopLoss
+		takeProfit = jsonBody.TakeProfit
+
+		Interval = jsonBody.KlineInterval
 
 		Request.ID = 1
 		Request.Method = "SUBSCRIBE"

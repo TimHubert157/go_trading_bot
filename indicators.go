@@ -34,6 +34,21 @@ func EMA(arr []float64, period int) (ema float64) {
 	return ArrayEma[len(ArrayEma)-1]
 }
 
+//SMMA
+func SMMA(arr []float64, period int) (sma float64) {
+	ArraySMMA := []float64{}
+	for index, elem := range arr {
+		if index == 0 {
+			ArraySMMA = append(ArraySMMA, elem)
+		} else {
+			EMAtoday := (((ArraySMMA[index-1] * float64(period)) - ArraySMMA[index-1] + elem) / float64(period))
+			ArraySMMA = append(ArraySMMA, EMAtoday)
+		}
+	}
+
+	return ArraySMMA[len(ArraySMMA)-1]
+}
+
 //Percentage difference between to values
 func Percentage(s float64, f float64) (diff float64) {
 	diff = (((s - f) / ((s + f) / 2) * 100) * -1)
